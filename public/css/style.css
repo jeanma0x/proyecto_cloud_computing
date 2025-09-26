@@ -1,0 +1,45 @@
+/* Estilos personalizados para la aplicación */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.btn {
+    border-radius: 5px;
+}
+
+.alert {
+    border-radius: 5px;
+}
+
+.table {
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .table-responsive {
+        font-size: 14px;
+    }
+    
+    .btn-sm {
+        font-size: 12px;
+    }
+}

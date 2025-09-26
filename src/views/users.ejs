@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - App Cloud</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">App Cloud</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">Hola, <%= user.username %></span>
+                <a class="btn btn-outline-light" href="/auth/logout">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Gestión de Usuarios</h2>
+                    <a href="/dashboard" class="btn btn-secondary">Volver al Dashboard</a>
+                </div>
+
+                <% if (success) { %>
+                    <div class="alert alert-success"><%= success %></div>
+                <% } %>
+                <% if (error) { %>
+                    <div class="alert alert-danger"><%= error %></div>
+                <% } %>
+
+                <!-- Formulario para crear usuario -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Crear Nuevo Usuario</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="/users">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" name="username" placeholder="Usuario" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="email" class="form-control" name="email" placeholder="Email" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="password" class="form-control" name="password" placeholder="Contraseña" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-success w-100">Crear</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lista de usuarios -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Lista de Usuarios</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Usuario</th>
+                                        <th>Email</th>
+                                        <th>Creado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% users.forEach(function(userItem) { %>
+                                    <tr>
+                                        <td><%= userItem.id %></td>
+                                        <td><%= userItem.username %></td>
+                                        <td><%= userItem.email %></td>
+                                        <td><%= new Date(userItem.created_at).toLocaleDateString() %></td>
+                                        <td>
+                                        <button class="btn btn-sm btn-warning me-2" 
+                                                data-id="<%= userItem.id %>"
+                                                data-username="<%= userItem.username %>"
+                                                data-email="<%= userItem.email %>"
+                                                onclick="editUser(this.dataset.id, this.dataset.username, this.dataset.email)">
+                                            Editar
+                                        </button>
+                                        <% if (userItem.id !== user.id) { %>
+                                        <button class="btn btn-sm btn-danger" 
+                                                data-id="<%= userItem.id %>"
+                                                data-username="<%= userItem.username %>"
+                                                onclick="deleteUser(this.dataset.id, this.dataset.username)">
+                                            Eliminar
+                                        </button>
+                                        <% } %>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar usuario -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editForm" method="POST">
+                    <input type="hidden" name="_method" value="PUT">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Usuario</label>
+                            <input type="text" class="form-control" name="username" id="editUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" id="editEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nueva Contraseña (opcional)</label>
+                            <input type="password" class="form-control" name="password" id="editPassword">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editUser(id, username, email) {
+            document.getElementById('editUsername').value = username;
+            document.getElementById('editEmail').value = email;
+            document.getElementById('editPassword').value = '';
+            document.getElementById('editForm').action = '/users/' + id;
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+
+        function deleteUser(id, username) {
+            if (confirm('¿Estás seguro de eliminar el usuario "' + username + '"?')) {
+                fetch('/users/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        }
+
+        // Handle PUT requests for update
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const id = this.action.split('/').pop();
+            
+            fetch('/users/' + id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: formData.get('username'),
+                    email: formData.get('email'),
+                    password: formData.get('password')
+                })
+            }).then(() => {
+                location.reload();
+            });
+        });
+    </script>
+</body>
+</html>
